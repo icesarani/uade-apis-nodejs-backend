@@ -61,7 +61,8 @@ exports.createMentor = async function (req, res, next) {
 
   if (mentors.total > 0) {
     return res.status(200).json({
-      message: "El mail ingresado ya existe en nuestra base para otro Mentor."
+      message:
+        "El mail ingresado ya existe en nuestra base para otro Mentor, prueba con otro mail o intenta loguearte."
     });
   }
 
