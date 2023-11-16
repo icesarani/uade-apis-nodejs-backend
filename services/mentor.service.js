@@ -104,16 +104,16 @@ exports.deleteMentor = async function (id) {
   }
 };
 
-exports.loginMentor = async function (mentor) {
+exports.loginmentor = async function (mentor) {
   // Creating a new Mongoose Object by using the new keyword
   try {
     // Find the Mentor
-    console.log("login:", Mentor);
+    console.log("login:", mentor);
     var _details = await Mentor.findOne({
-      email: Mentor.email
+      email: mentor.email
     });
     var passwordIsValid = bcrypt.compareSync(
-      Mentor.password,
+      mentor.password,
       _details.password
     );
     if (!passwordIsValid) return 0;
