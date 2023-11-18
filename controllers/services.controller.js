@@ -13,13 +13,11 @@ exports.getMyServices = async function (req, res, next) {
 
   try {
     const myServices = await ServicesService.getMyServices(filter, option);
-    return res
-      .status(200)
-      .json({
-        status: 200,
-        message: "Servicios obtenidos con exito",
-        services: myServices
-      });
+    return res.status(200).json({
+      status: 200,
+      message: "Servicios obtenidos con exito",
+      services: myServices
+    });
   } catch (e) {
     return res
       .status(400)
@@ -39,6 +37,26 @@ exports.setNewService = async function (req, res, next) {
     return res
       .status(200)
       .json({ status: 200, message: "El servicio se ingreso correctamente." });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
+  }
+};
+
+exports.changeHiringStatus = async function (req, res, next) {
+  try {
+    await ServicesService.changeHiringStatus(
+      req.body.serviceId,
+      req.body.hiringReqId,
+      req.body.newStatus
+    );
+    return res.status(200).json({
+      status: 200,
+      message:
+        "Modificado con exito el id " +
+        req.body.serviceId +
+        " al estado " +
+        req.body.newStatus
+    });
   } catch (e) {
     return res.status(400).json({ status: 400, message: e.message });
   }
@@ -70,6 +88,27 @@ exports.insertComment = async function (req, res, next) {
   }
 };
 
+const rateCalculate = (service) => {
+  if (!service) return;
+  if (!service.comments) {
+    service.rate = 1;
+    return;
+  }
+  if (service.comments.length < 1) {
+    service.rate = 1;
+    return;
+  }
+
+  const rate = 0;
+
+  for (aux in service.comments) {
+    rate += service.comments[parseInt(aux, 10)].stars;
+  }
+
+  rate = rate / service.comments.length - 1;
+  service.rate = Math.round(rate * 10) / 10;
+};
+
 // Async Controller function to get the services list
 exports.getServicesByFilters = async function (req, res, next) {
   // Check the existence of the query parameters, If doesn't exists assign a default value
@@ -77,12 +116,17 @@ exports.getServicesByFilters = async function (req, res, next) {
   const limit = req.query.limit ? req.query.limit : 10;
   let filtro = {};
   try {
-    const Services = await ServicesService.getServicesByFilters(
+    const services = await ServicesService.getServicesByFilters(
       filtro,
       page,
       limit
     );
     // Return the Users list with the appropriate HTTP password Code and Message.
+
+    for (aux in services.docs) {
+      rateCalculate(services.docs[aux]);
+    }
+
     return res.status(200).json({
       status: 200,
       data: Services,

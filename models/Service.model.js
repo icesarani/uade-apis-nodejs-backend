@@ -12,16 +12,32 @@ const ServiceSchema = new mongoose.Schema({
   classType: String,
   nombreProfesor: String,
   mentorId: String,
-  comments: { name: String, comment: String, stars: Number },
-  hireRequest: {
-    messaje: String,
-    name: String,
-    phone: String,
-    mail: String,
-    contactTime: Number,
-    status: Number,
-    creationDate: Date
-  }
+  comments: [
+    {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: mongoose.Types.ObjectId
+      },
+      name: String,
+      comment: String,
+      stars: Number
+    }
+  ],
+  hireRequest: [
+    {
+      _id: {
+        type: mongoose.Schema.Types.ObjectId,
+        default: mongoose.Types.ObjectId
+      },
+      messaje: String,
+      name: String,
+      phone: String,
+      mail: String,
+      contactTime: Number,
+      status: Number,
+      creationDate: Date
+    }
+  ]
 });
 
 ServiceSchema.plugin(mongoosePaginate);

@@ -60,12 +60,43 @@ exports.insertComment = async function (filtro, comment) {
   }
 };
 
+exports.changeHiringStatus = async function (
+  serviceId,
+  hiringReqId,
+  newStatus
+) {
+  try {
+    Service.findOneAndUpdate(
+      {
+        _id: serviceId,
+        "hireRequest._id": hiringReqId
+      },
+      {
+        $set: { "hiringRequest.$.status": newStatus }
+      },
+      { new: true }
+    );
+  } catch (e) {
+    throw Error("Error al cambiar un estado de peticion: " + e.message);
+  }
+};
+
+exports.getOneSpecificService = async function (filtro) {
+  try {
+    return await Service.findOne(filtro);
+  } catch (e) {
+    throw Error("Error al obtener el servicio " + e.message);
+  }
+};
+
 // Async function to get the Services List
 exports.getServicesByFilters = async function (query, page, limit) {
   // Options setup for the mongoose paginate
   const options = {
     page,
-    limit
+    limit,
+    select:
+      "_id profilePhoto title summaryDescription category price secuency rate classType comments"
   };
   // Try Catch the awaited promise to handle the error
   try {
