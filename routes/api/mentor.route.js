@@ -9,6 +9,7 @@ router.get("/", function (req, res, next) {
 });
 
 router.post("/registration", MentorController.createMentor);
-router.post("/login/", MentorController.loginMentor);
+router.post("/login", MentorController.loginMentor);
+router.post("/forgottenpass", MentorController.forgotPassword);
 // Export the Router
 module.exports = router;

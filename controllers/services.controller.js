@@ -4,14 +4,17 @@ const ServicesService = require("../services/services.service");
 _this = this;
 
 exports.getMyServices = async function (req, res, next) {
+  console.log(req);
+  console.log(req.body);
   const option = {
     page: req.query.page ? req.query.page : 1,
     limit: req.query.limit ? req.query.limit : 10
   };
 
-  const filter = { mentorId: req.mentor._id };
+  const filter = { mentorId: req.body.mentor._id };
 
   try {
+    console.log(filter);
     const myServices = await ServicesService.getMyServices(filter, option);
     return res.status(200).json({
       status: 200,
@@ -31,6 +34,7 @@ exports.setNewService = async function (req, res, next) {
   service.hireRequest = [];
   service.comments = [];
   service.mentorId = req.mentor._id;
+  service.active = 1;
 
   try {
     await ServicesService.setNewService(service);
@@ -75,10 +79,31 @@ exports.hireService = async function (req, res, next) {
   }
 };
 
+exports.changeStatusComment = async function (req, res, next) {
+  const filterService = { _id: req.body.serviceId };
+  const filterComment = { _id: req.body.commentId };
+  try {
+    await ServicesService.changeStatusComment(
+      filterService,
+      filterComment,
+      req.body.commentStatus
+    );
+    return res
+      .status(200)
+      .json({ status: 200, message: "Commentario actualizado con exito." });
+  } catch (e) {
+    return res
+      .status(400)
+      .json({ status: 400, message: "No se pudo actualizar el comentario." });
+  }
+};
+
 exports.insertComment = async function (req, res, next) {
   const filtro = { _id: req.body.service._id };
+  const newComment = req.body.comment;
+  newComment.status = 0;
   try {
-    await ServicesService.insertComment(filtro, req.body.comment);
+    await ServicesService.insertComment(filtro, newComment);
     return res
       .status(200)
       .json({ status: 200, messaje: "Comentario plasmado." });
@@ -88,25 +113,19 @@ exports.insertComment = async function (req, res, next) {
   }
 };
 
-const rateCalculate = (service) => {
-  if (!service) return;
-  if (!service.comments) {
-    service.rate = 1;
-    return;
-  }
-  if (service.comments.length < 1) {
-    service.rate = 1;
-    return;
-  }
+exports.getOneService = async function (req, res, next) {
+  const filter = { _id: req.params.serviceId };
+  try {
+    const service = await ServicesService.getOneSpecificService(filter);
 
-  const rate = 0;
-
-  for (aux in service.comments) {
-    rate += service.comments[parseInt(aux, 10)].stars;
+    return res.status(200).json({
+      status: 200,
+      service: service,
+      message: "Succesfully Services Recieved"
+    });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
   }
-
-  rate = rate / service.comments.length - 1;
-  service.rate = Math.round(rate * 10) / 10;
 };
 
 // Async Controller function to get the services list
@@ -114,7 +133,7 @@ exports.getServicesByFilters = async function (req, res, next) {
   // Check the existence of the query parameters, If doesn't exists assign a default value
   const page = req.query.page ? req.query.page : 1;
   const limit = req.query.limit ? req.query.limit : 10;
-  let filtro = {};
+  let filtro = { active: 1 };
   try {
     const services = await ServicesService.getServicesByFilters(
       filtro,
@@ -123,13 +142,9 @@ exports.getServicesByFilters = async function (req, res, next) {
     );
     // Return the Users list with the appropriate HTTP password Code and Message.
 
-    for (aux in services.docs) {
-      rateCalculate(services.docs[aux]);
-    }
-
     return res.status(200).json({
       status: 200,
-      data: Services,
+      services: services.docs,
       message: "Succesfully Services Recieved"
     });
   } catch (e) {

@@ -2,9 +2,56 @@
 var Mentor = require("../models/Mentor.model");
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
+var mailService = require("../shared/mailfunc");
 
 // Saving the context of this module inside the _the variable
 _this = this;
+
+const getRandomPass = () => {
+  const caracteres =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let cadenaAleatoria = "";
+
+  for (let i = 0; i < 10; i++) {
+    const caracterAleatorio = caracteres.charAt(
+      Math.floor(Math.random() * caracteres.length)
+    );
+    cadenaAleatoria += caracterAleatorio;
+  }
+
+  return cadenaAleatoria;
+};
+
+exports.forgotPassword = async function (mail) {
+  try {
+    const mentor = await Mentor.findOne({ email: mail });
+    if (!mentor) {
+      throw Error("No se encontró ninguna cuenta con el mail ingresado");
+    }
+    console.log(mentor);
+    const newPass = getRandomPass();
+    console.log(newPass);
+    var hashedPassword = bcrypt.hashSync(newPass, 8);
+
+    await Mentor.findOneAndUpdate(
+      {
+        _id: mentor._id
+      },
+      {
+        $set: { password: hashedPassword }
+      },
+      { new: true }
+    );
+
+    await mailService.sendForgottenPassword(
+      mentor.email,
+      mentor.name + " " + mentor.lastName,
+      newPass
+    );
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
 
 // Async function to get the Mentor List
 exports.getMentors = async function (query, page, limit) {
@@ -15,7 +62,6 @@ exports.getMentors = async function (query, page, limit) {
   };
   // Try Catch the awaited promise to handle the error
   try {
-    console.log("Query", query);
     var Mentors = await Mentor.paginate(query, options);
     console.log(Mentors.total);
     // Return the Mentord list that was retured by the mongoose promise
