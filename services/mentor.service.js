@@ -44,11 +44,7 @@ exports.forgotPassword = async function (mail) {
       { new: true }
     );
 
-    await mailService.sendForgottenPassword(
-      mentor.email,
-      mentor.name + " " + mentor.lastName,
-      newPass
-    );
+    await mailService.sendForgottenPassword(mentor.email, mentor.name, newPass);
   } catch (e) {
     throw Error(e.message);
   }
@@ -79,7 +75,11 @@ exports.createMentor = async function (mentor) {
   console.log(mentor.profilePhoto);
   if (mentor.profilePhoto) {
     try {
-      urlImage = await imgService.uploadImage(mentor.profilePhoto);
+      urlImage = await imgService.uploadImage(
+        "profilephoto-" + mentor.email,
+        "mentors",
+        mentor.profilePhoto
+      );
     } catch (e) {
       console.error(e);
       throw Error("Error occured while uploading to Cloudinary.");
@@ -119,12 +119,13 @@ exports.createMentor = async function (mentor) {
   }
 };
 
-exports.updateMentor = async function (Mentor) {
-  var id = { name: Mentor.name };
+exports.updateMentor = async function (newMentor) {
+  var filter = { email: newMentor.email };
   console.log(id);
+  var oldMentor;
   try {
     //Find the old Mentor Object by the Id
-    var oldMentor = await Mentor.findOne(id);
+    oldMentor = await Mentor.findOne(filter);
     console.log(oldMentor);
   } catch (e) {
     throw Error("Error occured while Finding the Mentor");
@@ -135,9 +136,28 @@ exports.updateMentor = async function (Mentor) {
   }
   //Edit the Mentor Object
   var hashedPassword = bcrypt.hashSync(Mentor.password, 8);
-  oldMentor.name = Mentor.name;
-  oldMentor.email = Mentor.email;
-  oldMentor.password = hashedPassword;
+  if (newMentor.name) {
+    oldMentor.name = newMentor.name;
+  }
+  if (newMentor.lastname) {
+    oldMentor.lastname = newMentor.lastname;
+  }
+  if (newMentor.password) {
+    oldMentor.password = bcrypt.hashSync(newMentor.password, 8);
+  }
+  if (newMentor.profilePhoto) {
+    if (oldMentor.profilePhoto) {
+      var result = imgService.deleteImage("profilephoto-" + oldMentor.email);
+    }
+    var newImageUrl = imgService.uploadImage(
+      "profilephoto-" + oldMentor.email,
+      "mentors",
+      newMentor.profilePhoto
+    );
+
+    oldMentor.profilePhoto = newImageUrl;
+  }
+
   try {
     var savedMentor = await oldMentor.save();
     return savedMentor;

@@ -1,5 +1,7 @@
 // Getting the Newly created Mongoose Model we just created
 const Service = require("../models/Service.model");
+const MentorService = require("../services/mentor.service");
+const mailService = require("../shared/mailfunc");
 
 // Saving the context of this module inside the _the variable
 _this = this;
@@ -9,7 +11,7 @@ exports.getMyServices = async function (filter, options) {
     console.log("llegue al service");
     const services = await Service.paginate(filter, options);
     console.log(services);
-    return services;
+    return services.docs;
   } catch (e) {}
 };
 
@@ -102,14 +104,33 @@ exports.changeStatusComment = async function (
 
 exports.insertComment = async function (filtro, comment) {
   try {
-    const result = await Service.updateOne(
+    const result = await Service.findOneAndUpdate(
       filtro,
       {
         $push: { comments: comment }
       },
-      (err, result) => {
+      { new: true },
+      async (err, result) => {
         if (err) {
           throw Error(err);
+        }
+        try {
+          console.log(result);
+          var page = 1;
+          var limit = 10;
+          var query = { _id: result.mentorId };
+          const mentorAux = await MentorService.getMentors(query, page, limit);
+          if (mentorAux.docs.length != 0) {
+            mailService.sendNewComment(
+              mentorAux.docs[0].email,
+              mentorAux.docs[0].name,
+              comment.name,
+              result.title,
+              comment.comment
+            );
+          }
+        } catch (e) {
+          console.log(e);
         }
       }
     );

@@ -33,7 +33,8 @@ exports.setNewService = async function (req, res, next) {
 
   service.hireRequest = [];
   service.comments = [];
-  service.mentorId = req.mentor._id;
+  service.rate = 0;
+  service.mentorId = req.body.mentorId;
   service.active = 1;
 
   try {
