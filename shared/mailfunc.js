@@ -12,8 +12,8 @@ const sendMail = (toaacount, subject, body) => {
     port: 465,
     secure: true, // use SSL
     auth: {
-      user: "tpoapisfeliale@gmail.com",
-      pass: "hoel xjpt ktsh jarw"
+      user: "igcesarani@gmail.com",
+      pass: "haka cpwq gasc rnsy"
     }
   });
 

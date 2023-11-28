@@ -84,9 +84,15 @@ exports.createMentor = async function (req, res, next) {
     email: req.body.email,
     password: req.body.password,
     phone: req.body.phone,
-    profilePhoto: req.body.profilephoto,
     workExperience: req.body.workexperience
   };
+
+  console.log(req.file);
+  if (req.file != undefined) {
+    mentor.profilePhoto = req.file.buffer;
+    console.log(mentor.profilePhoto);
+  }
+
   try {
     // Calling the Service function with the new object from the Request Body
     var createdmentor = await mentorService.createMentor(mentor);

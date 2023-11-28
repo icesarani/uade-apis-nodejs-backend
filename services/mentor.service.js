@@ -3,6 +3,7 @@ var Mentor = require("../models/Mentor.model");
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
 var mailService = require("../shared/mailfunc");
+var imgService = require("../shared/imagefunc");
 
 // Saving the context of this module inside the _the variable
 _this = this;
@@ -74,6 +75,17 @@ exports.getMentors = async function (query, page, limit) {
 };
 
 exports.createMentor = async function (mentor) {
+  var urlImage;
+  console.log(mentor.profilePhoto);
+  if (mentor.profilePhoto) {
+    try {
+      urlImage = await imgService.uploadImage(mentor.profilePhoto);
+    } catch (e) {
+      console.error(e);
+      throw Error("Error occured while uploading to Cloudinary.");
+    }
+  }
+
   // Creating a new Mongoose Object by using the new keyword
   var hashedPassword = bcrypt.hashSync(mentor.password, 8);
 
@@ -83,7 +95,7 @@ exports.createMentor = async function (mentor) {
     creationDate: new Date(),
     password: hashedPassword,
     phone: mentor.phone,
-    profilePhoto: mentor.profilePhoto,
+    profilePhoto: urlImage,
     workExperience: mentor.workExperience
   });
 
