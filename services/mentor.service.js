@@ -2,9 +2,53 @@
 var Mentor = require("../models/Mentor.model");
 var bcrypt = require("bcryptjs");
 var jwt = require("jsonwebtoken");
+var mailService = require("../shared/mailfunc");
+var imgService = require("../shared/imagefunc");
 
 // Saving the context of this module inside the _the variable
 _this = this;
+
+const getRandomPass = () => {
+  const caracteres =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+  let cadenaAleatoria = "";
+
+  for (let i = 0; i < 10; i++) {
+    const caracterAleatorio = caracteres.charAt(
+      Math.floor(Math.random() * caracteres.length)
+    );
+    cadenaAleatoria += caracterAleatorio;
+  }
+
+  return cadenaAleatoria;
+};
+
+exports.forgotPassword = async function (mail) {
+  try {
+    const mentor = await Mentor.findOne({ email: mail });
+    if (!mentor) {
+      throw Error("No se encontró ninguna cuenta con el mail ingresado");
+    }
+    console.log(mentor);
+    const newPass = getRandomPass();
+    console.log(newPass);
+    var hashedPassword = bcrypt.hashSync(newPass, 8);
+
+    await Mentor.findOneAndUpdate(
+      {
+        _id: mentor._id
+      },
+      {
+        $set: { password: hashedPassword }
+      },
+      { new: true }
+    );
+
+    await mailService.sendForgottenPassword(mentor.email, mentor.name, newPass);
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
 
 // Async function to get the Mentor List
 exports.getMentors = async function (query, page, limit) {
@@ -15,7 +59,6 @@ exports.getMentors = async function (query, page, limit) {
   };
   // Try Catch the awaited promise to handle the error
   try {
-    console.log("Query", query);
     var Mentors = await Mentor.paginate(query, options);
     console.log(Mentors.total);
     // Return the Mentord list that was retured by the mongoose promise
@@ -28,6 +71,21 @@ exports.getMentors = async function (query, page, limit) {
 };
 
 exports.createMentor = async function (mentor) {
+  var urlImage;
+  console.log(mentor.profilePhoto);
+  if (mentor.profilePhoto) {
+    try {
+      urlImage = await imgService.uploadImage(
+        "profilephoto-" + mentor.email,
+        "mentors",
+        mentor.profilePhoto
+      );
+    } catch (e) {
+      console.error(e);
+      throw Error("Error occured while uploading to Cloudinary.");
+    }
+  }
+
   // Creating a new Mongoose Object by using the new keyword
   var hashedPassword = bcrypt.hashSync(mentor.password, 8);
 
@@ -37,7 +95,7 @@ exports.createMentor = async function (mentor) {
     creationDate: new Date(),
     password: hashedPassword,
     phone: mentor.phone,
-    profilePhoto: mentor.profilePhoto,
+    profilePhoto: urlImage,
     workExperience: mentor.workExperience
   });
 
@@ -61,12 +119,13 @@ exports.createMentor = async function (mentor) {
   }
 };
 
-exports.updateMentor = async function (Mentor) {
-  var id = { name: Mentor.name };
+exports.updateMentor = async function (newMentor) {
+  var filter = { email: newMentor.email };
   console.log(id);
+  var oldMentor;
   try {
     //Find the old Mentor Object by the Id
-    var oldMentor = await Mentor.findOne(id);
+    oldMentor = await Mentor.findOne(filter);
     console.log(oldMentor);
   } catch (e) {
     throw Error("Error occured while Finding the Mentor");
@@ -77,9 +136,28 @@ exports.updateMentor = async function (Mentor) {
   }
   //Edit the Mentor Object
   var hashedPassword = bcrypt.hashSync(Mentor.password, 8);
-  oldMentor.name = Mentor.name;
-  oldMentor.email = Mentor.email;
-  oldMentor.password = hashedPassword;
+  if (newMentor.name) {
+    oldMentor.name = newMentor.name;
+  }
+  if (newMentor.lastname) {
+    oldMentor.lastname = newMentor.lastname;
+  }
+  if (newMentor.password) {
+    oldMentor.password = bcrypt.hashSync(newMentor.password, 8);
+  }
+  if (newMentor.profilePhoto) {
+    if (oldMentor.profilePhoto) {
+      var result = imgService.deleteImage("profilephoto-" + oldMentor.email);
+    }
+    var newImageUrl = imgService.uploadImage(
+      "profilephoto-" + oldMentor.email,
+      "mentors",
+      newMentor.profilePhoto
+    );
+
+    oldMentor.profilePhoto = newImageUrl;
+  }
+
   try {
     var savedMentor = await oldMentor.save();
     return savedMentor;
@@ -104,16 +182,16 @@ exports.deleteMentor = async function (id) {
   }
 };
 
-exports.loginMentor = async function (mentor) {
+exports.loginmentor = async function (mentor) {
   // Creating a new Mongoose Object by using the new keyword
   try {
     // Find the Mentor
-    console.log("login:", Mentor);
+    console.log("login:", mentor);
     var _details = await Mentor.findOne({
-      email: Mentor.email
+      email: mentor.email
     });
     var passwordIsValid = bcrypt.compareSync(
-      Mentor.password,
+      mentor.password,
       _details.password
     );
     if (!passwordIsValid) return 0;

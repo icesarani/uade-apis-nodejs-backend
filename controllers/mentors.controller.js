@@ -3,6 +3,18 @@ var mentorService = require("../services/mentor.service");
 // Saving the context of this module inside the _the variable
 _this = this;
 
+exports.forgotPassword = async function (req, res, next) {
+  try {
+    await mentorService.forgotPassword(req.body.mail);
+    return res.status(200).json({
+      status: 200,
+      message: "Mail enviado con exito"
+    });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
+  }
+};
+
 // Async Controller function to get the To do List
 exports.getMentors = async function (req, res, next) {
   // Check the existence of the query parameters, If doesn't exists assign a default value
@@ -72,9 +84,15 @@ exports.createMentor = async function (req, res, next) {
     email: req.body.email,
     password: req.body.password,
     phone: req.body.phone,
-    profilePhoto: req.body.profilephoto,
     workExperience: req.body.workexperience
   };
+
+  console.log(req.file);
+  if (req.file != undefined) {
+    mentor.profilePhoto = req.file.buffer;
+    console.log(mentor.profilePhoto);
+  }
+
   try {
     // Calling the Service function with the new object from the Request Body
     var createdmentor = await mentorService.createMentor(mentor);
