@@ -1,5 +1,6 @@
 // Getting the Newly created Mongoose Model we just created
 const Service = require("../models/Service.model");
+const Mentor = require("../models/Mentor.model");
 const MentorService = require("../services/mentor.service");
 const mailService = require("../shared/mailfunc");
 
@@ -161,26 +162,90 @@ exports.changeHiringStatus = async function (
 };
 
 exports.getOneSpecificService = async function (filtro) {
+  let response;
+  let resultado;
   try {
-    return await Service.findOne(filtro);
+    response = await Service.findOne(filtro);
+    console.log(response);
+    if (response) {
+      var page = 1;
+      var limit = 10;
+      var query = { _id: response.mentorId };
+      const mentorAux = await MentorService.getMentors(query, page, limit);
+      if (mentorAux.docs) {
+        resultado = { mentor: mentorAux.docs[0], service: response };
+        return resultado;
+      } else {
+        throw Error("No se encontro le mentor del servicio");
+      }
+    }
   } catch (e) {
     throw Error("Error al obtener el servicio " + e.message);
   }
 };
 
 // Async function to get the Services List
-exports.getServicesByFilters = async function (query, page, limit) {
-  // Options setup for the mongoose paginate
-  const options = {
-    page,
-    limit,
-    select:
-      "_id profilePhoto title summaryDescription category price secuency rate classType"
-  };
+exports.getServicesByFilters = async function (filtro) {
   // Try Catch the awaited promise to handle the error
   try {
+    let result = await Service.aggregate([
+      {
+        $match: filtro
+      },
+      {
+        $project: {
+          title: 1,
+          summaryDescription: 1,
+          category: 1,
+          price: 1,
+          secuency: 1,
+          rate: 1,
+          classType: 1,
+          mentorId: { $toObjectId: "$mentorId" }
+        }
+      },
+      {
+        $lookup: {
+          from: "mentors",
+          localField: "mentorId",
+          foreignField: "_id",
+          as: "mentorInfo"
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          summaryDescription: 1,
+          category: 1,
+          price: 1,
+          secuency: 1,
+          rate: 1,
+          classType: 1,
+          mentorId: 1,
+          mentorInfo: { $arrayElemAt: ["$mentorInfo", 0] }, // Obtiene el primer elemento del array
+          mentorName: "$mentorInfo.name",
+          mentorProfilePhoto: "$mentorInfo.profilePhoto"
+        }
+      },
+      {
+        $project: {
+          title: 1,
+          summaryDescription: 1,
+          category: 1,
+          price: 1,
+          secuency: 1,
+          rate: 1,
+          classType: 1,
+          mentorId: 1,
+          mentorName: { $arrayElemAt: ["$mentorName", 0] },
+          mentorProfilePhoto: { $arrayElemAt: ["$mentorProfilePhoto", 0] }
+        }
+      }
+    ]).exec();
+    console.log(result);
+    return result;
     // Return the Services list that was retured by the mongoose promise
-    return await Service.paginate(query, options);
+    //return await Service.paginate(query, options);
   } catch (e) {
     // return a Error message describing the reason
     console.log("error services", e);

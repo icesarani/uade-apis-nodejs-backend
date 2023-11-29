@@ -80,15 +80,15 @@ exports.createMentor = async function (req, res, next) {
 
   var mentor = {
     name: req.body.name,
-    lastName: req.body.lastname,
+    lastName: req.body.lastName,
     email: req.body.email,
     password: req.body.password,
-    phone: req.body.phone,
-    workExperience: req.body.workexperience
+    title: req.body.title,
+    workExperience: req.body.workExperience
   };
 
   console.log(req.file);
-  if (req.file != undefined) {
+  if (req.file) {
     mentor.profilePhoto = req.file.buffer;
     console.log(mentor.profilePhoto);
   }
@@ -97,7 +97,7 @@ exports.createMentor = async function (req, res, next) {
     // Calling the Service function with the new object from the Request Body
     var createdmentor = await mentorService.createMentor(mentor);
     return res
-      .status(201)
+      .status(200)
       .json({ createdmentor, message: "Succesfully Created mentor" });
   } catch (e) {
     //Return an Error Response Message with Code and the Error Message.
@@ -145,19 +145,29 @@ exports.removementor = async function (req, res, next) {
 exports.loginMentor = async function (req, res, next) {
   // Req.Body contains the form submit values.
   console.log("body", req.body);
+  if (!req.body.email || !req.body.password) {
+    return res
+      .status(400)
+      .json({ message: "Error en la contraseña", status: 400 });
+  }
+
   var mentor = {
     email: req.body.email,
     password: req.body.password
   };
+
   try {
     // Calling the Service function with the new object from the Request Body
     var loginmentor = await mentorService.loginmentor(mentor);
-    if (loginmentor === 0)
-      return res.status(400).json({ message: "Error en la contraseña" });
+    console.log(loginmentor);
+    if (!loginmentor)
+      return res
+        .status(400)
+        .json({ message: "Error en la contraseña", status: 400 });
     else
       return res
-        .status(201)
-        .json({ loginmentor, message: "Succesfully login" });
+        .status(200)
+        .json({ loginmentor, message: "Succesfully login", status: 200 });
   } catch (e) {
     //Return an Error Response Message with Code and the Error Message.
     return res
