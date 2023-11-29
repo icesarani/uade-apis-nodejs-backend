@@ -74,6 +74,7 @@ exports.createMentor = async function (mentor) {
   var urlImage;
   console.log(mentor.profilePhoto);
   if (mentor.profilePhoto) {
+    console.log("entre al if");
     try {
       urlImage = await imgService.uploadImage(
         "profilephoto-" + mentor.email,
@@ -92,9 +93,10 @@ exports.createMentor = async function (mentor) {
   var newMentor = new Mentor({
     name: mentor.name,
     email: mentor.email,
+    lastName: mentor.lastName,
     creationDate: new Date(),
     password: hashedPassword,
-    phone: mentor.phone,
+    title: mentor.title,
     profilePhoto: urlImage,
     workExperience: mentor.workExperience
   });
@@ -111,7 +113,8 @@ exports.createMentor = async function (mentor) {
         expiresIn: 86400 // expires in 24 hours
       }
     );
-    return token;
+    const response = { mentor: { _id: savedMentor._id }, token: token };
+    return response;
   } catch (e) {
     // return a Error message describing the reason
     console.log(e);
@@ -190,10 +193,8 @@ exports.loginmentor = async function (mentor) {
     var _details = await Mentor.findOne({
       email: mentor.email
     });
-    var passwordIsValid = bcrypt.compareSync(
-      mentor.password,
-      _details.password
-    );
+    console.log(_details);
+    var passwordIsValid = bcrypt.compare(mentor.password, _details.password);
     if (!passwordIsValid) return 0;
 
     var token = jwt.sign(
