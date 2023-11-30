@@ -10,8 +10,8 @@ _this = this;
 exports.getMyServices = async function (filter, options) {
   try {
     console.log("llegue al service");
+    filter.active = 1;
     const services = await Service.paginate(filter, options);
-    console.log(services);
     return services.docs;
   } catch (e) {}
 };
@@ -140,6 +140,19 @@ exports.insertComment = async function (filtro, comment) {
   }
 };
 
+exports.desactivateService = async function (serviceId) {
+  try {
+    let response = await Service.findOneAndUpdate(
+      { _id: serviceId },
+      { $set: { active: false } },
+      { new: true }
+    );
+    console.log(response);
+  } catch (e) {
+    throw Error("Error al actualizar el servicio");
+  }
+};
+
 exports.changeHiringStatus = async function (
   serviceId,
   hiringReqId,
@@ -164,10 +177,10 @@ exports.changeHiringStatus = async function (
 exports.getOneSpecificService = async function (filtro) {
   let response;
   let resultado;
+  filtro.active = 1;
   try {
     response = await Service.findOne(filtro);
-    response.comments = response.comments.filter((c) => c.status === 1);
-    console.log(response);
+    reseponse.comments = console.log(response);
     if (response) {
       var page = 1;
       var limit = 10;
@@ -188,6 +201,7 @@ exports.getOneSpecificService = async function (filtro) {
 // Async function to get the Services List
 exports.getServicesByFilters = async function (filtro) {
   // Try Catch the awaited promise to handle the error
+  filtro.active = 1;
   try {
     let result = await Service.aggregate([
       {

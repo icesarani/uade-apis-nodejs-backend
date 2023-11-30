@@ -3,6 +3,21 @@ const ServicesService = require("../services/services.service");
 // Saving the context of this module inside the _the constiable
 _this = this;
 
+exports.desactivateService = async function (req, res, next) {
+  try {
+    ServicesService.desactivateService(req.params.serviceId);
+    return res.status(200).json({
+      status: 200,
+      message: "Servicio desactivado con exito"
+    });
+  } catch (e) {
+    return res.status(400).json({
+      status: 400,
+      message: "Servicio desactivado con error"
+    });
+  }
+};
+
 exports.getMyServices = async function (req, res, next) {
   console.log(req);
   console.log(req.body);
@@ -11,7 +26,7 @@ exports.getMyServices = async function (req, res, next) {
     limit: req.query.limit ? req.query.limit : 10
   };
 
-  const filter = { mentorId: req.body.mentor._id };
+  const filter = { mentorId: req.body.mentorId };
 
   try {
     console.log(filter);
@@ -137,6 +152,49 @@ exports.getServicesByFilters = async function (req, res, next) {
   const page = req.query.page ? req.query.page : 1;
   const limit = req.query.limit ? req.query.limit : 10;
   let filtro = {};
+
+  if (
+    req.body?.filter?.category != undefined &&
+    req.body?.filter?.category != ""
+  ) {
+    filtro.category = req.body?.filter?.category;
+  }
+
+  if (
+    req.body?.filter?.frequency != undefined &&
+    req.body?.filter?.frequency != ""
+  ) {
+    filtro.frequency = req.body?.filter?.frequency;
+  }
+
+  if (
+    req.body?.filter?.classType != undefined &&
+    req.body?.filter?.classType != ""
+  ) {
+    filtro.category = req.body?.filter?.category;
+  }
+
+  if (
+    req.body?.filter?.category != undefined &&
+    req.body?.filter?.category != ""
+  ) {
+    filtro.classType = req.body?.filter?.classType;
+  }
+
+  if (req.body?.filter?.rate != undefined && req.body?.filter?.rate != 0) {
+    filtro.rate = req.body?.filter?.rate;
+  }
+
+  if (
+    req.body?.filter?.subject != undefined &&
+    req.body?.filter?.subject != 0
+  ) {
+    filtro.title = req.body?.filter?.subject;
+  }
+
+  console.log(req.body);
+  console.log(filtro);
+
   try {
     const services = await ServicesService.getServicesByFilters(filtro);
     // Return the Users list with the appropriate HTTP password Code and Message.

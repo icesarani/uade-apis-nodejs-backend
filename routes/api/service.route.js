@@ -10,8 +10,13 @@ router.get("/", function (req, res, next) {
 });
 
 // Devuelve un listado de todos los servicios por filtro
-router.get("/getAvailableServices", ServicesController.getServicesByFilters);
+router.post("/getAvailableServices", ServicesController.getServicesByFilters);
 router.get("/getoneservice/:serviceId", ServicesController.getOneService);
+router.delete(
+  "/:serviceId",
+  Authorization,
+  ServicesController.desactivateService
+);
 router.post("/getmyservices", Authorization, ServicesController.getMyServices);
 router.post("/setservice", Authorization, ServicesController.setNewService);
 router.post("/addcomment", ServicesController.insertComment);
