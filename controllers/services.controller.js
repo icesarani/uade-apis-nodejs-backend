@@ -29,6 +29,8 @@ exports.getMyServices = async function (req, res, next) {
 };
 
 exports.setNewService = async function (req, res, next) {
+  console.log(req.body);
+
   const service = req.body.service;
 
   service.hireRequest = [];
