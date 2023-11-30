@@ -193,9 +193,15 @@ exports.loginmentor = async function (mentor) {
     var _details = await Mentor.findOne({
       email: mentor.email
     });
-    console.log(_details);
-    var passwordIsValid = bcrypt.compare(mentor.password, _details.password);
-    if (!passwordIsValid) return 0;
+    console.log("details " + _details);
+    var passwordIsValid = await bcrypt.compare(
+      mentor.password,
+      _details.password
+    );
+    console.log(passwordIsValid);
+    if (passwordIsValid == false) {
+      throw Error("Contraseña invalida");
+    }
 
     var token = jwt.sign(
       {
