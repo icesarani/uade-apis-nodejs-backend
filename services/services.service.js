@@ -166,6 +166,7 @@ exports.getOneSpecificService = async function (filtro) {
   let resultado;
   try {
     response = await Service.findOne(filtro);
+    response.comments = response.comments.filter((c) => c.status === 1);
     console.log(response);
     if (response) {
       var page = 1;
