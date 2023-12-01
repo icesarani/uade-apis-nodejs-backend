@@ -222,7 +222,7 @@ exports.getServicesByFilters = async function (req, res, next) {
   }
 
   if (req.body?.filters?.rate != undefined && req.body?.filters?.rate != 0) {
-    filtro.rate = { $gt: req.body?.filters?.rate };
+    filtro.rate = { $gte: req.body?.filters?.rate };
   }
 
   if (
