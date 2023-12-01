@@ -43,6 +43,17 @@ exports.getMyServices = async function (req, res, next) {
   }
 };
 
+exports.updateService = async function (req, res, next) {
+  try {
+    const result = await ServicesService.updateService(req.service);
+    return res
+      .status(200)
+      .json({ status: 200, message: "actualizado con exito", result });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
+  }
+};
+
 exports.setNewService = async function (req, res, next) {
   console.log(req.body);
 
@@ -84,8 +95,44 @@ exports.changeHiringStatus = async function (req, res, next) {
   }
 };
 
+exports.getMyHiringRequest = async function (req, res, next) {
+  try {
+    console.log(req.params);
+    const response = await ServicesService.obtenerHiringRequestsPorMentorId(
+      req.params.mentorId
+    );
+    console.log(response);
+    return res.status(200).json({
+      status: 200,
+      message: "Hiring request obtenido con exito",
+      hiringRequests: response
+    });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
+  }
+};
+
+exports.getServiceToUpdate = async function (req, res, next) {
+  const filtro = { _id: req.params.serviceId };
+  const option = {
+    page: req.query.page ? req.query.page : 1,
+    limit: req.query.limit ? req.query.limit : 10
+  };
+  try {
+    const response = await ServicesService.getServiceToUpdate(filtro, option);
+    console.log(response);
+    return res.status(200).json({
+      status: 200,
+      message: "info obtenida con exito",
+      service: response
+    });
+  } catch (e) {
+    return res.status(400).json({ status: 400, message: e.message });
+  }
+};
+
 exports.hireService = async function (req, res, next) {
-  const filtro = { _id: req.body.service._id };
+  const filtro = { _id: req.body.serviceId };
   try {
     await ServicesService.hireService(filtro, req.body.hireReq);
     return res.status(200).json({
@@ -154,42 +201,35 @@ exports.getServicesByFilters = async function (req, res, next) {
   let filtro = {};
 
   if (
-    req.body?.filter?.category != undefined &&
-    req.body?.filter?.category != ""
+    req.body?.filters?.category != undefined &&
+    req.body?.filters?.category != ""
   ) {
-    filtro.category = req.body?.filter?.category;
+    filtro.category = req.body?.filters?.category;
   }
 
   if (
-    req.body?.filter?.frequency != undefined &&
-    req.body?.filter?.frequency != ""
+    req.body?.filters?.frequency != undefined &&
+    req.body?.filters?.frequency != ""
   ) {
-    filtro.frequency = req.body?.filter?.frequency;
+    filtro.frequency = req.body?.filters?.frequency;
   }
 
   if (
-    req.body?.filter?.classType != undefined &&
-    req.body?.filter?.classType != ""
+    req.body?.filters?.classType != undefined &&
+    req.body?.filters?.classType != ""
   ) {
-    filtro.category = req.body?.filter?.category;
+    filtro.classType = req.body?.filters?.classType;
+  }
+
+  if (req.body?.filters?.rate != undefined && req.body?.filters?.rate != 0) {
+    filtro.rate = { $gt: req.body?.filters?.rate };
   }
 
   if (
-    req.body?.filter?.category != undefined &&
-    req.body?.filter?.category != ""
+    req.body?.filters?.subject != undefined &&
+    req.body?.filters?.subject != 0
   ) {
-    filtro.classType = req.body?.filter?.classType;
-  }
-
-  if (req.body?.filter?.rate != undefined && req.body?.filter?.rate != 0) {
-    filtro.rate = req.body?.filter?.rate;
-  }
-
-  if (
-    req.body?.filter?.subject != undefined &&
-    req.body?.filter?.subject != 0
-  ) {
-    filtro.title = req.body?.filter?.subject;
+    filtro.title = { $regex: req.body?.filters?.subject, $options: "i" };
   }
 
   console.log(req.body);

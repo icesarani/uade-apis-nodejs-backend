@@ -20,9 +20,27 @@ router.delete(
 router.post("/getmyservices", Authorization, ServicesController.getMyServices);
 router.post("/setservice", Authorization, ServicesController.setNewService);
 router.post("/addcomment", ServicesController.insertComment);
-router.post("/changecommentstatus", ServicesController.changeStatusComment);
+router.post(
+  "/changecommentstatus",
+  Authorization,
+  ServicesController.changeStatusComment
+);
 router.post("/sethiringrequest", ServicesController.hireService);
-router.post("/changehiringstatus", ServicesController.changeHiringStatus);
-
+router.post(
+  "/changehiringstatus",
+  Authorization,
+  ServicesController.changeHiringStatus
+);
+router.get(
+  "/getservicetoupdate/:serviceId",
+  Authorization,
+  ServicesController.getServiceToUpdate
+);
+router.get(
+  "/getmyhiringrequests/:mentorId",
+  Authorization,
+  ServicesController.getMyHiringRequest
+);
+router.post("/updateservice", Authorization, ServicesController.updateService);
 // Export the Router
 module.exports = router;
