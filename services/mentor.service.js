@@ -51,6 +51,16 @@ exports.forgotPassword = async function (mail) {
   }
 };
 
+exports.getMentorById = async function (mentorId) {
+  try {
+    const mentor = await Mentor.findById(mentorId);
+    console.log(mentor);
+    return mentor;
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
+
 // Async function to get the Mentor List
 exports.getMentors = async function (query, page, limit) {
   // Options setup for the mongoose paginate
@@ -123,10 +133,10 @@ exports.createMentor = async function (mentor) {
   }
 };
 
-exports.updateMentor = async function (newMentor) {
-  var filter = { email: newMentor.email };
-  console.log(id);
-  var oldMentor;
+exports.updateMentor = async function (mentorId, newMentor) {
+  var filter = { _id: mentorId };
+  console.log(mentorId);
+  let oldMentor;
   try {
     //Find the old Mentor Object by the Id
     oldMentor = await Mentor.findOne(filter);
@@ -136,28 +146,43 @@ exports.updateMentor = async function (newMentor) {
   }
   // If no old Mentor Object exists return false
   if (!oldMentor) {
-    return false;
+    throw Error("El mentor ingresado no existe");
   }
   //Edit the Mentor Object
-  var hashedPassword = bcrypt.hashSync(Mentor.password, 8);
-  if (newMentor.name) {
+  console.log(newMentor);
+  if (newMentor.password && newMentor?.password != "") {
+    if (newMentor.password) {
+      oldMentor.password = bcrypt.hashSync(newMentor.password, 8);
+    }
+  }
+
+  if (newMentor.name && newMentor.name != "") {
     oldMentor.name = newMentor.name;
   }
-  if (newMentor.lastname) {
-    oldMentor.lastname = newMentor.lastname;
+
+  if (newMentor.lastName && newMentor.lastName != "") {
+    oldMentor.lastName = newMentor.lastName;
   }
-  if (newMentor.password) {
-    oldMentor.password = bcrypt.hashSync(newMentor.password, 8);
-  }
+
   if (newMentor.profilePhoto) {
-    if (oldMentor.profilePhoto) {
-      var result = imgService.deleteImage("profilephoto-" + oldMentor.email);
+    if (oldMentor.profilePhoto && oldMentor.profilePhoto != "") {
+      try {
+        var result = await imgService.deleteImage(
+          "profilephoto-" + oldMentor.email
+        );
+        console.log(result);
+      } catch (e) {}
     }
-    var newImageUrl = imgService.uploadImage(
-      "profilephoto-" + oldMentor.email,
-      "mentors",
-      newMentor.profilePhoto
-    );
+    try {
+      var newImageUrl = await imgService.uploadImage(
+        `profilephoto-${oldMentor.email}`,
+        "mentors",
+        newMentor.profilePhoto
+      );
+      console.log(newImageUrl);
+    } catch (e) {
+      console.log(e.message);
+    }
 
     oldMentor.profilePhoto = newImageUrl;
   }

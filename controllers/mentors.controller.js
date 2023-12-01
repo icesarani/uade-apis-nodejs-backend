@@ -15,6 +15,23 @@ exports.forgotPassword = async function (req, res, next) {
   }
 };
 
+exports.getMyData = async function (req, res, next) {
+  try {
+    var mentor = await mentorService.getMentorById(req.params.mentorId);
+    if (mentor) {
+      return res.status(200).json({
+        status: 200,
+        message: "Mentor encontrado con exito",
+        mentor: mentor
+      });
+    }
+  } catch (e) {
+    return res
+      .status(400)
+      .json({ status: 400, message: "Usuario no encontrado" });
+  }
+};
+
 // Async Controller function to get the To do List
 exports.getMentors = async function (req, res, next) {
   // Check the existence of the query parameters, If doesn't exists assign a default value
@@ -82,9 +99,7 @@ exports.createMentor = async function (req, res, next) {
     name: req.body.name,
     lastName: req.body.lastName,
     email: req.body.email,
-    password: req.body.password,
-    title: req.body.title,
-    workExperience: req.body.workExperience
+    password: req.body.password
   };
 
   console.log(req.file);
@@ -109,19 +124,23 @@ exports.createMentor = async function (req, res, next) {
 };
 
 exports.updatementor = async function (req, res, next) {
-  // Id is necessary for the update
-  if (!req.body.name) {
-    return res.status(400).json({ status: 400, message: "Name be present" });
+  if (!req.body._id) {
+    throw Error("No se puede actualizar si no se tiene el id unico");
   }
 
   var mentor = {
     name: req.body.name ? req.body.name : null,
-    email: req.body.email ? req.body.email : null,
+    lastName: req.body.lastName ? req.body.lastName : null,
     password: req.body.password ? req.body.password : null
   };
 
+  if (req.file) {
+    mentor.profilePhoto = req.file.buffer;
+    console.log(mentor.profilePhoto);
+  }
+
   try {
-    var updatedmentor = await mentorService.updatementor(mentor);
+    var updatedmentor = await mentorService.updateMentor(req.body._id, mentor);
     return res.status(200).json({
       status: 200,
       data: updatedmentor,
