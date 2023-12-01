@@ -109,17 +109,28 @@ exports.hireService = async function (filtro, hire) {
 
 const rateCalculate = (service) => {
   if (!service || !service.comments || service.comments.length === 0) {
-    service.rate = 1;
+    service.rate = 0;
+    return service;
+  }
+  if (!service.comments.filter((c) => c.status === 1)) {
+    service.rate = 0;
     return service;
   }
 
   let rate = 0;
   let aux = 0;
+  console.log("estoy en ratecalculate");
+  console.log(service.comments);
   for (const comment of service.comments) {
-    if (comment.stars != null && comment.status == 1) {
+    if (comment.stars != null && comment.status === 1) {
       rate += comment.stars;
       aux++;
     }
+  }
+
+  if (aux === 0) {
+    service.rate = 0;
+    return service;
   }
 
   service.rate = rate / aux;
@@ -131,80 +142,121 @@ exports.changeStatusComment = async function (
   filterComment,
   newStatus
 ) {
-  Service.findById(filterService._id, (err, serviceResult) => {
-    if (err) {
-      console.error("Error al encontrar el servicio:", err);
-      // Manejo de error, si es necesario
-    } else {
-      console.log(serviceResult);
-
-      // Encuentra el índice del comentario que deseas actualizar en la lista de comentarios
-      const index = serviceResult.comments.findIndex(
-        (comment) => comment._id.toString() === filterComment._id
-      );
-
-      if (index !== -1) {
-        // Actualiza los campos del comentario dentro de la lista
-        serviceResult.comments[index].status = newStatus;
-
-        rateCalculate(serviceResult);
-
-        // Guarda los cambios en el documento padre (servicio)
-        serviceResult.save((error, updatedService) => {
-          if (error) {
-            console.error("Error al guardar los cambios:", error);
-            // Manejo de error, si es necesario
-          } else {
-            console.log("Servicio actualizado:", updatedService);
-            // El comentario dentro del servicio ha sido actualizado con éxito
-          }
-        });
-      } else {
-        console.log("Comentario no encontrado en la lista");
-        // Manejo si el comentario no es encontrado
-      }
+  try {
+    const serviceResult = await Service.findById(filterService._id);
+    console.log("El servicio es:");
+    console.log(serviceResult);
+    if (!serviceResult) {
+      console.log("Servicio no encontrado");
+      // Manejo si el servicio no es encontrado
+      return;
     }
-  });
+
+    const commentToUpdate = serviceResult.comments.find(
+      (comment) => comment._id.toString() === filterComment._id
+    );
+    console.log("el comment es:");
+    console.log(commentToUpdate);
+    if (!commentToUpdate) {
+      console.log("Comentario no encontrado en la lista");
+      // Manejo si el comentario no es encontrado
+      return;
+    }
+
+    commentToUpdate.status = newStatus;
+
+    rateCalculate(serviceResult);
+    console.log(serviceResult);
+    const updatedService = await serviceResult.save();
+
+    console.log("Servicio actualizado:", updatedService);
+    // El comentario dentro del servicio ha sido actualizado con éxito
+
+    return updatedService;
+  } catch (error) {
+    console.error("Error al actualizar el comentario:", error);
+    throw new Error("Error al actualizar el comentario: " + error.message);
+  }
 };
+
+//exports.changeStatusComment = async function (
+//  filterService,
+//  filterComment,
+//  newStatus
+//) {
+//  Service.findById(filterService._id, (err, serviceResult) => {
+//    if (err) {
+//      console.error("Error al encontrar el servicio:", err);
+//      // Manejo de error, si es necesario
+//    } else {
+//      console.log(serviceResult);
+//
+//      // Encuentra el índice del comentario que deseas actualizar en la lista de comentarios
+//      const index = serviceResult.comments.findIndex(
+//        (comment) => comment._id.toString() === filterComment._id
+//      );
+//
+//      if (index !== -1) {
+//        // Actualiza los campos del comentario dentro de la lista
+//        serviceResult.comments[index].status = newStatus;
+//
+//        rateCalculate(serviceResult);
+//
+//        // Guarda los cambios en el documento padre (servicio)
+//        serviceResult.save((error, updatedService) => {
+//          if (error) {
+//            console.error("Error al guardar los cambios:", error);
+//            // Manejo de error, si es necesario
+//          } else {
+//            console.log("Servicio actualizado:", updatedService);
+//            // El comentario dentro del servicio ha sido actualizado con éxito
+//          }
+//        });
+//      } else {
+//        console.log("Comentario no encontrado en la lista");
+//        // Manejo si el comentario no es encontrado
+//      }
+//    }
+//  });
+//};
 
 exports.insertComment = async function (filtro, comment) {
   try {
     comment.commentDate = new Date();
     console.log(comment);
-    const result = await Service.findOneAndUpdate(
+
+    const updatedService = await Service.findOneAndUpdate(
       filtro,
       {
         $push: { comments: comment }
       },
-      { new: true },
-      async (err, result) => {
-        if (err) {
-          throw Error(err);
-        }
-        try {
-          console.log(result);
-          var page = 1;
-          var limit = 10;
-          var query = { _id: result.mentorId };
-          const mentorAux = await MentorService.getMentors(query, page, limit);
-          console.log(mentorAux);
-          if (mentorAux.docs.length != 0) {
-            mailService.sendNewComment(
-              mentorAux.docs[0].email,
-              mentorAux.docs[0].name,
-              comment.name,
-              result.title,
-              comment.comment
-            );
-          }
-          return;
-        } catch (e) {
-          throw Error(e.message);
-        }
-      }
+      { new: true }
     );
+
+    console.log(updatedService);
+
+    if (updatedService) {
+      const mentorAux = await MentorService.getMentors(
+        { _id: updatedService.mentorId },
+        1,
+        10
+      );
+
+      if (mentorAux.docs.length !== 0) {
+        const mentor = mentorAux.docs[0];
+        mailService.sendNewComment(
+          mentor.email,
+          mentor.name,
+          comment.name,
+          updatedService.title,
+          comment.comment
+        );
+      }
+    }
+
+    return updatedService;
   } catch (e) {
-    throw Error("Error while updating services: " + e.Error);
+    throw new Error("Error while updating services: " + e.message);
   }
 };
 
