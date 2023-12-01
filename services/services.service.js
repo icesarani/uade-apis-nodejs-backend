@@ -221,24 +221,27 @@ exports.desactivateService = async function (serviceId) {
   }
 };
 
-exports.changeHiringStatus = async function (
-  serviceId,
-  hiringReqId,
-  newStatus
-) {
+exports.changeHiringStatus = async function (hiringReqId, newStatus) {
   try {
-    Service.findOneAndUpdate(
+    const updatedService = await Service.findOneAndUpdate(
       {
-        _id: serviceId,
         "hireRequest._id": hiringReqId
       },
       {
-        $set: { "hiringRequest.$.status": newStatus }
+        $set: { "hireRequest.$.status": newStatus }
       },
       { new: true }
     );
+
+    if (!updatedService) {
+      throw new Error(
+        "No se encontró el servicio o la solicitud de contratación"
+      );
+    }
+
+    return updatedService;
   } catch (e) {
-    throw Error("Error al cambiar un estado de peticion: " + e.message);
+    throw new Error("Error al cambiar un estado de petición: " + e.message);
   }
 };
 
