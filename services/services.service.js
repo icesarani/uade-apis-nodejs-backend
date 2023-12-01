@@ -92,20 +92,19 @@ exports.hireService = async function (filtro, hire) {
     hire.creationDate = Date.now();
     console.log(filtro);
     console.log(hire);
-    await Service.updateOne(
+
+    const result = await Service.updateOne(
       filtro,
       { $push: { hireRequest: hire } },
-      { new: true },
-      (err, result) => {
-        if (err) {
-          throw Error(err);
-        }
-        console.log(result);
-      }
+      { new: true }
     );
 
     console.log(result);
-  } catch (e) {}
+    return result; // Puedes retornar el resultado si lo necesitas en otro lugar
+  } catch (e) {
+    console.error(e);
+    throw e; // Asegúrate de manejar el error adecuadamente
+  }
 };
 
 const rateCalculate = (service) => {
