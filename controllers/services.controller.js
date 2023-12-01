@@ -45,7 +45,7 @@ exports.getMyServices = async function (req, res, next) {
 
 exports.updateService = async function (req, res, next) {
   try {
-    const result = await ServicesService.updateService(req.service);
+    const result = await ServicesService.updateService(req.body.service);
     return res
       .status(200)
       .json({ status: 200, message: "actualizado con exito", result });
