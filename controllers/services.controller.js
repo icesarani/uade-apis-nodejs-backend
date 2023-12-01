@@ -78,7 +78,6 @@ exports.setNewService = async function (req, res, next) {
 exports.changeHiringStatus = async function (req, res, next) {
   try {
     await ServicesService.changeHiringStatus(
-      req.body.serviceId,
       req.body.hiringReqId,
       req.body.newStatus
     );
