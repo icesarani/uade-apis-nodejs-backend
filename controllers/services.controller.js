@@ -154,42 +154,35 @@ exports.getServicesByFilters = async function (req, res, next) {
   let filtro = {};
 
   if (
-    req.body?.filter?.category != undefined &&
-    req.body?.filter?.category != ""
+    req.body?.filters?.category != undefined &&
+    req.body?.filters?.category != ""
   ) {
-    filtro.category = req.body?.filter?.category;
+    filtro.category = req.body?.filters?.category;
   }
 
   if (
-    req.body?.filter?.frequency != undefined &&
-    req.body?.filter?.frequency != ""
+    req.body?.filters?.frequency != undefined &&
+    req.body?.filters?.frequency != ""
   ) {
-    filtro.frequency = req.body?.filter?.frequency;
+    filtro.frequency = req.body?.filters?.frequency;
   }
 
   if (
-    req.body?.filter?.classType != undefined &&
-    req.body?.filter?.classType != ""
+    req.body?.filters?.classType != undefined &&
+    req.body?.filters?.classType != ""
   ) {
-    filtro.category = req.body?.filter?.category;
+    filtro.classType = req.body?.filters?.classType;
+  }
+
+  if (req.body?.filters?.rate != undefined && req.body?.filters?.rate != 0) {
+    filtro.rate = { $gt: req.body?.filters?.rate };
   }
 
   if (
-    req.body?.filter?.category != undefined &&
-    req.body?.filter?.category != ""
+    req.body?.filters?.subject != undefined &&
+    req.body?.filters?.subject != 0
   ) {
-    filtro.classType = req.body?.filter?.classType;
-  }
-
-  if (req.body?.filter?.rate != undefined && req.body?.filter?.rate != 0) {
-    filtro.rate = req.body?.filter?.rate;
-  }
-
-  if (
-    req.body?.filter?.subject != undefined &&
-    req.body?.filter?.subject != 0
-  ) {
-    filtro.title = req.body?.filter?.subject;
+    filtro.title = { $regex: req.body?.filters?.subject, $options: "i" };
   }
 
   console.log(req.body);
