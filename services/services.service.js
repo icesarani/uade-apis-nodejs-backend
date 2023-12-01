@@ -7,6 +7,39 @@ const mailService = require("../shared/mailfunc");
 // Saving the context of this module inside the _the variable
 _this = this;
 
+exports.getServiceToUpdate = async function (filtro, options) {
+  try {
+    console.log(filtro);
+    const services = await Service.paginate(filtro, options);
+    console.log(services);
+    return services.docs.length > 0 ? services.docs[0] : {};
+  } catch (e) {
+    throw Error(e.message);
+  }
+};
+
+exports.obtenerHiringRequestsPorMentorId = async function (mentorId) {
+  try {
+    // Encuentra todos los servicios que coincidan con el mentorId proporcionado
+    const serviciosConMentorId = await Service.find({ mentorId: mentorId });
+    console.log(serviciosConMentorId);
+
+    // Extrae los hiringRequest de los servicios que cumplen con el mentorId
+    const hiringRequests = serviciosConMentorId.reduce((result, service) => {
+      if (service.hireRequest) {
+        console.log(service.hireRequest);
+        result.push(service.hireRequest);
+      }
+      console.log(result);
+      return result;
+    }, []);
+
+    return hiringRequests;
+  } catch (error) {
+    throw new Error(`Error al obtener los hiringRequests: ${error}`);
+  }
+};
+
 exports.getMyServices = async function (filter, options) {
   try {
     console.log("llegue al service");
@@ -14,6 +47,31 @@ exports.getMyServices = async function (filter, options) {
     const services = await Service.paginate(filter, options);
     return services.docs;
   } catch (e) {}
+};
+
+exports.updateService = async function (service) {
+  try {
+    let newservice = await Service.findOneAndUpdate(
+      {
+        _id: service._id
+      },
+      {
+        $set: {
+          title: service.title,
+          summaryDescription: service.summaryDescription,
+          category: service.category,
+          frequency: service.frequency,
+          classType: service.classType,
+          aboutMe: service.aboutMe,
+          price: service.price
+        }
+      },
+      { new: true }
+    );
+    return newservice;
+  } catch (e) {
+    throw Error(e.message);
+  }
 };
 
 exports.setNewService = async function (service) {
@@ -32,14 +90,17 @@ exports.hireService = async function (filtro, hire) {
   try {
     hire.status = 0;
     hire.creationDate = Date.now();
-
+    console.log(filtro);
+    console.log(hire);
     await Service.updateOne(
       filtro,
       { $push: { hireRequest: hire } },
+      { new: true },
       (err, result) => {
         if (err) {
           throw Error(err);
         }
+        console.log(result);
       }
     );
 
@@ -76,28 +137,32 @@ exports.changeStatusComment = async function (
       console.error("Error al encontrar el servicio:", err);
       // Manejo de error, si es necesario
     } else {
-      // Encuentra el documento dentro de la lista que deseas actualizar
-      const commentResult = serviceResult.comments.id(filterComment._id);
+      console.log(serviceResult);
 
-      if (commentResult) {
-        // Actualiza los campos del documento dentro de la lista
-        commentResult.status = newStatus;
+      // Encuentra el índice del comentario que deseas actualizar en la lista de comentarios
+      const index = serviceResult.comments.findIndex(
+        (comment) => comment._id.toString() === filterComment._id
+      );
+
+      if (index !== -1) {
+        // Actualiza los campos del comentario dentro de la lista
+        serviceResult.comments[index].status = newStatus;
 
         rateCalculate(serviceResult);
 
-        // Guarda los cambios en el documento padre
-        serviceResult.save((error, serviceResult) => {
+        // Guarda los cambios en el documento padre (servicio)
+        serviceResult.save((error, updatedService) => {
           if (error) {
             console.error("Error al guardar los cambios:", error);
             // Manejo de error, si es necesario
           } else {
-            console.log("Documento actualizado:", serviceResult);
-            // El documento dentro de la lista ha sido actualizado con éxito
+            console.log("Servicio actualizado:", updatedService);
+            // El comentario dentro del servicio ha sido actualizado con éxito
           }
         });
       } else {
-        console.log("Documento dentro de la lista no encontrado");
-        // Manejo si el documento dentro de la lista no es encontrado
+        console.log("Comentario no encontrado en la lista");
+        // Manejo si el comentario no es encontrado
       }
     }
   });
@@ -105,6 +170,8 @@ exports.changeStatusComment = async function (
 
 exports.insertComment = async function (filtro, comment) {
   try {
+    comment.commentDate = new Date();
+    console.log(comment);
     const result = await Service.findOneAndUpdate(
       filtro,
       {
@@ -121,6 +188,7 @@ exports.insertComment = async function (filtro, comment) {
           var limit = 10;
           var query = { _id: result.mentorId };
           const mentorAux = await MentorService.getMentors(query, page, limit);
+          console.log(mentorAux);
           if (mentorAux.docs.length != 0) {
             mailService.sendNewComment(
               mentorAux.docs[0].email,
@@ -130,8 +198,9 @@ exports.insertComment = async function (filtro, comment) {
               comment.comment
             );
           }
+          return;
         } catch (e) {
-          console.log(e);
+          throw Error(e.message);
         }
       }
     );
@@ -180,7 +249,7 @@ exports.getOneSpecificService = async function (filtro) {
   filtro.active = 1;
   try {
     response = await Service.findOne(filtro);
-    reseponse.comments = console.log(response);
+    response.comments = response.comments.filter((f) => f.status === 1);
     if (response) {
       var page = 1;
       var limit = 10;

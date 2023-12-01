@@ -9,6 +9,7 @@ const CommentSchema = new mongoose.Schema({
   name: String,
   comment: String,
   stars: Number,
+  commentDate: Date,
   status: Number
 });
 
@@ -17,11 +18,11 @@ const HireReqSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     default: mongoose.Types.ObjectId
   },
-  messaje: String,
+  comment: String,
   name: String,
-  phone: String,
-  mail: String,
-  contactTime: Number,
+  phoneNumber: String,
+  email: String,
+  contactHours: String,
   status: Number,
   creationDate: Date
 });
