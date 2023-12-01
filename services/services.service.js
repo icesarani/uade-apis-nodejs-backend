@@ -201,7 +201,8 @@ exports.getOneSpecificService = async function (filtro) {
 // Async function to get the Services List
 exports.getServicesByFilters = async function (filtro) {
   // Try Catch the awaited promise to handle the error
-  filtro.active = 1;
+  filtro.active = true;
+  console.log(filtro);
   try {
     let result = await Service.aggregate([
       {

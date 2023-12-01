@@ -193,7 +193,7 @@ exports.getServicesByFilters = async function (req, res, next) {
   }
 
   console.log(req.body);
-  console.log(filtro);
+  console.log("filtro " + filtro);
 
   try {
     const services = await ServicesService.getServicesByFilters(filtro);
