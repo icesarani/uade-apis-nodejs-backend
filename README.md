@@ -1,48 +1,46 @@
-# nodejs-secure restful-api with jwt web-Token
+# <img src="./assets/smlogo.png" width="28"/> SkillMentor - Backend API
 
-### Prerequisites
+![Screenshot](./assets/SkillMentor.jpg)
 
-Node
-npm
-Express
-jsonwebtoken
-mongoose
+### Introducción
 
+Proyecto de backend de SkillMentor. Debe utilizarse en conjunto con https://github.com/lucashmunoz/tpo-apis-g02-front
 
-### Setup
+### Instalación
 
-> now install npm and packages
+- Clonar el repositorio:
+  ```bash
+  git clone https://github.com/lucashmunoz/tpo-apis-g02-back.git
+  ```
+- Dirigirse al directorio tpo-g02-front
 
-```shell
-$ npm install
-## Running the tests
+  ```bash
+  cd tpo-g02-front
+  ```
 
-It consist of a User model and controller. The model
-defines the data, and the controller will contain all 
-the business logic needed to interact with the database. 
+- Instalar dependencias
 
-It has a db file which will be used to
-connect the app to the database
+  ```bash
+  npm install
+  ```
 
-The server file is used to spin up the server and tells the
-app to listen on a specific port.
+### Iniciando el proyecto
 
-Let’s test this out. Why not?
-Open up your REST API testing tool of choice, I use Postman 
+Para correr el proyecto se debe ejecuar el siguiente comando:
 
-Go back to your terminal and run nodemon app.js. 
+```bash
+npm start
+```
 
+## 🔌Stack tecnológico utilizado en el proyecto
 
-Open up Postman and hit the register endpoint (http://localhost:4000/api/users/registration). Make sure to pick the POST method and x-www-form-url-encoded.
-Now, add some values (name, mail, password)
+Esta es la lista de las principales dependencias y sus versiones utilizadas:
 
-See the response? The token is a long jumbled string. 
-To try out the http://localhost:4000/api/users/users endpoint, first copy the token. Change the method to GET.
-Now you can add the token to the request header.
-
-You will get list of users...
-
-Try to update users the http://localhost:4000/api/users/update endpoint, and the method to PUT with x-www-form-url-encoded.
-
-Delete some users hit http://localhost:4000/api/users/delete endpoint with the method DELETE.
-
+- cloudinary@1.41.0
+- expres@4.16.0,
+- jsonwebtoken@8.3.0
+- mongoose@5.2.3,
+- nodemailer@6.9.7,
+- nodemon@1.19.4,
+- eslint@8.53.0,
+- prettier@3.0.3,
