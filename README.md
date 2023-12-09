@@ -1,10 +1,10 @@
-# <img src="./assets/smlogo.png" width="28"/> SkillMentor - Backend API
+# <img src="./assets/smlogo.png" width="28"/> SkillMentor - BackEnd API
 
 ![Screenshot](./assets/SkillMentor.jpg)
 
 ### Introducción
 
-Proyecto de backend de SkillMentor. Debe utilizarse en conjunto con https://github.com/lucashmunoz/tpo-apis-g02-front
+Proyecto de BackEnd de SkillMentor. Debe utilizarse en conjunto con https://github.com/lucashmunoz/tpo-apis-g02-front
 
 ### Instalación
 
