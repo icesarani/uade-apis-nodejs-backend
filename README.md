@@ -12,10 +12,10 @@ Proyecto de BackEnd de SkillMentor. Debe utilizarse en conjunto con https://gith
   ```bash
   git clone https://github.com/lucashmunoz/tpo-apis-g02-back.git
   ```
-- Dirigirse al directorio tpo-g02-front
+- Dirigirse al directorio tpo-apis-g02-back
 
   ```bash
-  cd tpo-g02-front
+  cd tpo-apis-g02-back
   ```
 
 - Instalar dependencias
