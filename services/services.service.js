@@ -62,7 +62,6 @@ exports.updateService = async function (service) {
           category: service.category,
           frequency: service.frequency,
           classType: service.classType,
-          aboutMe: service.aboutMe,
           price: service.price
         }
       },
