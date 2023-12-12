@@ -150,6 +150,15 @@ exports.updateMentor = async function (mentorId, newMentor) {
   }
   //Edit the Mentor Object
   console.log(newMentor);
+
+  if (newMentor.workExperience && newMentor.workExperience != "") {
+    oldMentor.workExperience = newMentor.workExperience;
+  }
+
+  if (newMentor.title && newMentor.title != "") {
+    oldMentor.title = newMentor.title;
+  }
+
   if (newMentor.password && newMentor?.password != "") {
     if (newMentor.password) {
       oldMentor.password = bcrypt.hashSync(newMentor.password, 8);
