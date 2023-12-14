@@ -11,7 +11,13 @@ exports.forgotPassword = async function (req, res, next) {
       message: "Mail enviado con exito"
     });
   } catch (e) {
-    return res.status(400).json({ status: 400, message: e.message });
+    if (e.message == "No se encontró ninguna cuenta con el mail ingresado") {
+      return res.status(422).json({ status: 422, message: e.message });
+    }
+
+    return res
+      .status(400)
+      .json({ status: 400, message: "Algo fallo al enviar el mail" });
   }
 };
 
