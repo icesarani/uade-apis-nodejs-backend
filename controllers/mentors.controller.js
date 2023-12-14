@@ -133,7 +133,9 @@ exports.updatementor = async function (req, res, next) {
   var mentor = {
     name: req.body.name ? req.body.name : null,
     lastName: req.body.lastName ? req.body.lastName : null,
-    password: req.body.password ? req.body.password : null
+    password: req.body.password ? req.body.password : null,
+    title: req.body.title ? req.body.title : null,
+    workExperience: req.body.workExperience ? req.body.workExperience : null
   };
 
   if (req.file) {
