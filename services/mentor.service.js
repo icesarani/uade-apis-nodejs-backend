@@ -27,6 +27,7 @@ exports.forgotPassword = async function (mail) {
   try {
     console.log(mail);
     const mentor = await Mentor.findOne({ email: mail });
+    console.log(mentor);
     if (!mentor) {
       throw Error("No se encontró ninguna cuenta con el mail ingresado");
     }
